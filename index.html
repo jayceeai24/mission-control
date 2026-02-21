@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Control - Hoofabot Agent Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 20px;
+        }
+
+        .left-sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .main-content {
+            min-width: 0;
+        }
+
+        .agents-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .agents-container h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .right-sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .agent-card {
+            min-height: 200px;
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .agent-emoji {
+            font-size: 3em;
+            margin-right: 15px;
+        }
+
+        .agent-info h3 {
+            font-size: 1.3em;
+            margin-bottom: 5px;
+        }
+
+        .agent-info p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .agent-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .status-active {
+            background: rgba(46, 213, 115, 0.3);
+            border: 1px solid rgba(46, 213, 115, 0.5);
+        }
+
+        .status-idle {
+            background: rgba(255, 234, 167, 0.3);
+            border: 1px solid rgba(255, 234, 167, 0.5);
+        }
+
+        .agent-stats {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .system-overview {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .system-overview h2 {
+            margin-bottom: 5px;
+        }
+
+        .system-overview .metric-box {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .system-overview .metric-box .metric-value {
+            font-size: 1.8em;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .activity-feed {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .activity-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .activity-time {
+            font-size: 0.8em;
+            opacity: 0.6;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .communication-panel {
+            grid-column: 1 / -1;
+        }
+
+        .agent-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .agent-chip {
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .agent-chip:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .agent-chip.selected {
+            background: rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95em;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 12px 30px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Agents container specific scrollbar */
+        .agents-container::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .agents-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .agents-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(102, 126, 234, 0.6), rgba(118, 75, 162, 0.6));
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .agents-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+        }
+
+        /* Email List Styles */
+        .email-list {
+            max-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .email-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .email-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+        }
+
+        .email-item.unread {
+            background: rgba(46, 213, 115, 0.1);
+            border-left-color: #2ed573;
+        }
+
+        /* Audio Player Styles */
+        .audio-player-card {
+            border-left: 3px solid #7bed9f;
+        }
+
+        #audioPlayer {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #audioPlayer::-webkit-media-controls-panel {
+            background: rgba(118, 75, 162, 0.8);
+        }
+
+        #noAudio {
+            transition: opacity 0.3s ease;
+        }
+
+        #audioControls {
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .email-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .email-from {
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .email-time {
+            font-size: 0.8em;
+            opacity: 0.6;
+        }
+
+        .email-subject {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .email-preview {
+            font-size: 0.85em;
+            opacity: 0.7;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .email-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .email-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+        }
+
+        .email-action-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Voice Input Styles */
+        .voice-btn {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-size: 1.3em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .voice-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #ff6348 0%, #ff4757 100%);
+            animation: pulse-red 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 25px rgba(255, 71, 87, 0.8);
+            }
+        }
+
+        .recording-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        #voiceStatus {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Ollama Monitor Styles */
+        .ollama-monitor {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .ollama-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ollama-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #2ed573;
+            box-shadow: 0 0 10px rgba(46, 213, 115, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-offline {
+            background: #ff4757;
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
+
+        .ollama-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .metric-row {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .metric-value-large {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ed573, #7bed9f);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .rate-display {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+
+        .rate-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2ed573;
+        }
+
+        .rate-unit {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .mini-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 40px;
+            margin-top: 10px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: rgba(46, 213, 115, 0.5);
+            border-radius: 2px;
+            min-height: 5px;
+            transition: height 0.3s ease;
+        }
+
+        .heartbeat-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(46, 213, 115, 0.15);
+            border-radius: 8px;
+            border-left: 3px solid #2ed573;
+        }
+
+        .heartbeat-icon {
+            font-size: 1.5em;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @media (max-width: 1400px) {
+            .main-layout {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .left-sidebar,
+            .right-sidebar {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .agents-container {
+                max-height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎛️ Mission Control</h1>
+            <p class="subtitle">Hoofabot Multi-Agent Command Center</p>
+        </header>
+
+        <div class="main-layout">
+            <!-- Left Sidebar: System Overview -->
+            <div class="left-sidebar">
+                <div class="card system-overview">
+                    <h2>📊 System</h2>
+                    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                        <div class="metric-box">
+                            <span class="metric-value">8</span>
+                            <span class="metric-label">Active Agents</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-value" id="uptime">0d 0h 0m</span>
+                            <span class="metric-label">System Uptime</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-value" id="tasks-today">0</span>
+                            <span class="metric-label">Tasks Today</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-value" id="messages-today">0</span>
+                            <span class="metric-label">Messages Today</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <h3 style="font-size: 1em; margin-bottom: 10px; opacity: 0.9;">Quick Actions</h3>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="btn" onclick="refreshDashboard()" style="width: 100%; padding: 8px;">🔄 Refresh</button>
+                            <button class="btn" onclick="viewLogs()" style="width: 100%; padding: 8px;">📋 Logs</button>
+                            <button class="btn" onclick="openConfig()" style="width: 100%; padding: 8px;">⚙️ Config</button>
+                            <button class="btn" onclick="openDocs()" style="width: 100%; padding: 8px;">📚 Docs</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Agent Cards -->
+            <div class="main-content">
+        <div class="dashboard">
+
+            <!-- Agent Cards Container -->
+            <div class="agents-container">
+                <h2>🤖 Active Agents</h2>
+                <div class="agents-grid">
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">🤖</div>
+                    <div class="agent-info">
+                        <h3>Hoofabot <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@hoofabot</span></h3>
+                        <p>Main Agent</p>
+                        <span class="agent-status status-active">● Active</span>
+                    </div>
+                </div>
+                <p>General personal assistant and network coordinator. Manages system operations and agent collaboration.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">--</span>
+                        <span class="stat-label">Sessions</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">--</span>
+                        <span class="stat-label">Messages</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">🎯</div>
+                    <div class="agent-info">
+                        <h3>PD <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@pd</span></h3>
+                        <p>Partner Digital</p>
+                        <span class="agent-status status-idle">● Standby</span>
+                    </div>
+                </div>
+                <p>Digital marketing specialist for local businesses. Expert in SEO, Google Business Profile, and High Level CRM.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Campaigns</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Clients</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">🎬</div>
+                    <div class="agent-info">
+                        <h3>TikTok <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@tiktok</span></h3>
+                        <p>Content & Commerce</p>
+                        <span class="agent-status status-idle">● Standby</span>
+                    </div>
+                </div>
+                <p>TikTok Shop strategist and viral content creator. Focuses on scaling e-commerce sales 0 to $1M monthly.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Videos</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">$0</span>
+                        <span class="stat-label">Revenue</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">💰</div>
+                    <div class="agent-info">
+                        <h3>Affiliate <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@affiliate</span></h3>
+                        <p>Performance Marketing</p>
+                        <span class="agent-status status-idle">● Standby</span>
+                    </div>
+                </div>
+                <p>Affiliate marketing expert. Optimizes campaigns, tracks conversions, and scales profitable offers.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Campaigns</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">$0</span>
+                        <span class="stat-label">Commissions</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">💃</div>
+                    <div class="agent-info">
+                        <h3>AI Models <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@aimodels</span></h3>
+                        <p>Influencer Creator</p>
+                        <span class="agent-status status-idle">● Standby</span>
+                    </div>
+                </div>
+                <p>AI influencer persona creator and Instagram growth strategist. Builds and monetizes digital avatars.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Personas</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">📧</div>
+                    <div class="agent-info">
+                        <h3>Email Manager <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@email</span></h3>
+                        <p>Communication Specialist</p>
+                        <span class="agent-status status-idle">● Standby</span>
+                    </div>
+                </div>
+                <p>Email management expert. Handles inbox triage, drafts responses, and manages communication workflows.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Emails</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Drafts</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">📈</div>
+                    <div class="agent-info">
+                        <h3>10k <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@10k</span></h3>
+                        <p>Growth & Scaling</p>
+                        <span class="agent-status status-idle">● Standby</span>
+                    </div>
+                </div>
+                <p>Growth specialist focused on hitting 10K milestones. Expert in scaling followers, revenue, and customers.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">$0</span>
+                        <span class="stat-label">Revenue</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card agent-card">
+                <div class="agent-header">
+                    <div class="agent-emoji">📸</div>
+                    <div class="agent-info">
+                        <h3>Photo Manager <span style="font-size: 0.7em; background: rgba(102,126,234,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 5px;">@photo</span></h3>
+                        <p>Visual Intelligence</p>
+                        <span class="agent-status status-idle">● Standby</span>
+                    </div>
+                </div>
+                <p>Photo analysis and organization specialist. Smart categorization, batch processing, and visual search.</p>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Photos</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Albums</span>
+                    </div>
+                </div>
+            </div>
+                </div>
+            </div>
+
+            <!-- Audio Response Player -->
+            <div class="card audio-player-card">
+                <h2>🔊 Audio Response Player</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8;">Listen to Hoofabot's responses through your connected audio device</p>
+                
+                <div id="audioPlayerContainer">
+                    <div id="noAudio" style="text-align: center; padding: 30px; opacity: 0.6;">
+                        <div style="font-size: 3em; margin-bottom: 10px;">🎧</div>
+                        <div>No audio responses yet</div>
+                        <div style="font-size: 0.85em; margin-top: 8px;">Audio will appear here when Hoofabot sends voice responses</div>
+                    </div>
+                    
+                    <div id="audioControls" style="display: none;">
+                        <div style="background: rgba(46, 213, 115, 0.15); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
+                                <span style="font-size: 2em;">🎵</span>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; margin-bottom: 5px;" id="audioTitle">Audio Response</div>
+                                    <div style="font-size: 0.85em; opacity: 0.8;" id="audioTimestamp">Just now</div>
+                                </div>
+                            </div>
+                            
+                            <audio id="audioPlayer" controls style="width: 100%; margin-top: 10px;">
+                                <source id="audioSource" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" onclick="playAudio()" style="flex: 1;">▶️ Play</button>
+                            <button class="btn" onclick="pauseAudio()" style="flex: 1;">⏸️ Pause</button>
+                            <button class="btn" onclick="downloadAudio()" style="flex: 1;">💾 Download</button>
+                        </div>
+                        
+                        <div style="margin-top: 15px; padding: 12px; background: rgba(102, 126, 234, 0.15); border-radius: 8px; font-size: 0.85em;">
+                            <strong>🎤 Audio Info:</strong>
+                            <div style="margin-top: 8px; opacity: 0.9;">
+                                • Voice: Default TTS (configurable)<br>
+                                • Format: Opus/MP3<br>
+                                • Output: <span id="audioDevice">Your AirPods or current audio device</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="card">
+                <h2>📡 Recent Activity</h2>
+                <div class="activity-feed">
+                    <div class="activity-item">
+                        <strong>🤖 Hoofabot:</strong> Multi-agent network initialized
+                        <span class="activity-time">Just now</span>
+                    </div>
+                    <div class="activity-item">
+                        <strong>🎯 PD Agent:</strong> Workspace configured and ready
+                        <span class="activity-time">1 minute ago</span>
+                    </div>
+                    <div class="activity-item">
+                        <strong>🎬 TikTok Agent:</strong> Identity loaded, standing by for tasks
+                        <span class="activity-time">1 minute ago</span>
+                    </div>
+                    <div class="activity-item">
+                        <strong>💰 Affiliate Agent:</strong> Campaign tracking system initialized
+                        <span class="activity-time">1 minute ago</span>
+                    </div>
+                    <div class="activity-item">
+                        <strong>💃 AI Models Agent:</strong> Ready to create influencer personas
+                        <span class="activity-time">1 minute ago</span>
+                    </div>
+                    <div class="activity-item">
+                        <strong>📧 Email Manager:</strong> Email management system initialized
+                        <span class="activity-time">Just now</span>
+                    </div>
+                    <div class="activity-item">
+                        <strong>System:</strong> Mission Control dashboard deployed
+                        <span class="activity-time">2 minutes ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gmail Inbox Panel -->
+            <div class="card">
+                <h2>📬 Gmail Inbox</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8;">bob@hoofabot.com • <span id="unreadCount">--</span> unread</p>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn" onclick="refreshInbox()" style="flex: 1;">🔄 Refresh</button>
+                    <button class="btn" onclick="composeEmail()" style="flex: 1;">✍️ Compose</button>
+                </div>
+
+                <div class="email-list" id="emailList">
+                    <!-- Sample emails - will be populated by Gmail API -->
+                    <div class="email-item unread">
+                        <div class="email-header">
+                            <span class="email-from">Partner Digital Inquiry</span>
+                            <span class="email-time">2h ago</span>
+                        </div>
+                        <div class="email-subject">Re: AI Marketing Consultation</div>
+                        <div class="email-preview">Hi John, I'm interested in learning more about your AI-powered marketing services for local businesses...</div>
+                        <div class="email-actions">
+                            <button class="email-action-btn" onclick="draftReply('email-1')">💬 Draft Reply</button>
+                            <button class="email-action-btn" onclick="viewEmail('email-1')">👁️ View</button>
+                        </div>
+                    </div>
+
+                    <div class="email-item">
+                        <div class="email-header">
+                            <span class="email-from">TikTok Shop Partnership</span>
+                            <span class="email-time">5h ago</span>
+                        </div>
+                        <div class="email-subject">Collaboration Opportunity</div>
+                        <div class="email-preview">We're reaching out to discuss potential partnership opportunities for scaling TikTok Shop businesses...</div>
+                        <div class="email-actions">
+                            <button class="email-action-btn" onclick="draftReply('email-2')">💬 Draft Reply</button>
+                            <button class="email-action-btn" onclick="viewEmail('email-2')">👁️ View</button>
+                        </div>
+                    </div>
+
+                    <div class="email-item">
+                        <div class="email-header">
+                            <span class="email-from">GitHub Notifications</span>
+                            <span class="email-time">1d ago</span>
+                        </div>
+                        <div class="email-subject">[openclaw/openclaw] New release: v2026.2.13</div>
+                        <div class="email-preview">OpenClaw has released a new version with enhanced multi-agent capabilities...</div>
+                        <div class="email-actions">
+                            <button class="email-action-btn" onclick="archiveEmail('email-3')">📦 Archive</button>
+                            <button class="email-action-btn" onclick="viewEmail('email-3')">👁️ View</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.85em; opacity: 0.7;">
+                    <strong>📡 Integration Status:</strong> Ready to connect
+                    <br>
+                    <a href="#" onclick="setupGmailAPI(); return false;" style="color: #7bed9f; text-decoration: underline;">→ Connect Gmail API</a>
+                </div>
+            </div>
+
+            <!-- Communication Panel -->
+            <div class="card">
+                <h2>💬 Agent Communication</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8;">Send messages to specific agents or coordinate tasks across the network</p>
+                
+                <div class="agent-selector">
+                    <div class="agent-chip" data-agent="main">🤖 Hoofabot</div>
+                    <div class="agent-chip" data-agent="pd">🎯 PD</div>
+                    <div class="agent-chip" data-agent="tiktok">🎬 TikTok</div>
+                    <div class="agent-chip" data-agent="affiliate">💰 Affiliate</div>
+                    <div class="agent-chip" data-agent="aimodels">💃 AI Models</div>
+                    <div class="agent-chip" data-agent="email">📧 Email</div>
+                </div>
+
+                <div style="position: relative;">
+                    <textarea id="messageInput" placeholder="Type your message to the selected agent..."></textarea>
+                    <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceInput()" title="Voice Input">
+                        <span id="voiceBtnIcon">🎤</span>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn send-btn" onclick="sendMessage()" style="flex: 1;">📤 Send Message</button>
+                    <button class="btn" onclick="clearMessage()" style="background: rgba(255, 71, 87, 0.3);">🗑️ Clear</button>
+                </div>
+                
+                <div id="voiceStatus" style="display: none; margin-top: 10px; padding: 10px; background: rgba(46, 213, 115, 0.2); border-radius: 8px; border-left: 3px solid #2ed573;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="recording-indicator"></div>
+                        <div>
+                            <div style="font-weight: bold;">🎤 Listening...</div>
+                            <div id="interimTranscript" style="font-size: 0.9em; opacity: 0.8; margin-top: 5px;">Speak now...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; padding: 12px; background: rgba(102, 126, 234, 0.15); border-radius: 8px; border-left: 3px solid #667eea;">
+                    <div style="font-size: 0.9em; margin-bottom: 8px;">
+                        <strong>💡 Tips:</strong>
+                    </div>
+                    <div style="font-size: 0.85em; opacity: 0.9; line-height: 1.6;">
+                        • Use natural language - agents understand context<br>
+                        • 🎤 Click microphone to use voice input (Chrome/Safari)<br>
+                        • Agents can collaborate to complete complex tasks<br>
+                        • Select agent first, then type or speak your message
+                    </div>
+                </div>
+            </div>
+        </div>
+            </div>
+
+            <!-- Right Sidebar: Ollama Monitor -->
+            <div class="right-sidebar">
+                <div class="card ollama-monitor">
+                    <div class="ollama-header">
+                        <h2>🦙 Ollama Monitor</h2>
+                        <div class="ollama-status">
+                            <div class="status-dot" id="ollamaStatusDot"></div>
+                            <span id="ollamaStatusText">Active</span>
+                        </div>
+                    </div>
+
+                    <div class="ollama-metrics">
+                        <!-- Current Rate -->
+                        <div>
+                            <div class="metric-label">Current Request Rate</div>
+                            <div class="rate-display">
+                                <span class="rate-number" id="requestRate">0.0</span>
+                                <span class="rate-unit">req/min</span>
+                            </div>
+                        </div>
+
+                        <!-- Heartbeat Indicator -->
+                        <div class="heartbeat-indicator">
+                            <span class="heartbeat-icon">💓</span>
+                            <div>
+                                <div style="font-size: 0.85em; opacity: 0.8;">Heartbeat Check</div>
+                                <div style="font-weight: bold;" id="nextHeartbeat">Next: 28m 15s</div>
+                            </div>
+                        </div>
+
+                        <!-- Model Info -->
+                        <div class="metric-row">
+                            <span class="metric-label">Model</span>
+                            <span class="metric-value-large">Qwen2.5:3b</span>
+                        </div>
+
+                        <!-- Tokens Processed -->
+                        <div>
+                            <div class="metric-row" style="padding-bottom: 5px;">
+                                <span class="metric-label">Tokens Today</span>
+                                <span class="metric-value-large" id="tokensToday">0</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="tokenProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Requests Today -->
+                        <div>
+                            <div class="metric-row" style="padding-bottom: 5px;">
+                                <span class="metric-label">Requests Today</span>
+                                <span class="metric-value-large" id="requestsToday">0</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="requestProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Chart -->
+                        <div>
+                            <div class="metric-label" style="margin-bottom: 10px;">Activity (Last 10min)</div>
+                            <div class="mini-chart" id="activityChart">
+                                <div class="chart-bar" style="height: 20%"></div>
+                                <div class="chart-bar" style="height: 35%"></div>
+                                <div class="chart-bar" style="height: 45%"></div>
+                                <div class="chart-bar" style="height: 60%"></div>
+                                <div class="chart-bar" style="height: 40%"></div>
+                                <div class="chart-bar" style="height: 55%"></div>
+                                <div class="chart-bar" style="height: 70%"></div>
+                                <div class="chart-bar" style="height: 50%"></div>
+                                <div class="chart-bar" style="height: 65%"></div>
+                                <div class="chart-bar" style="height: 45%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Memory Usage -->
+                        <div>
+                            <div class="metric-row" style="padding-bottom: 5px;">
+                                <span class="metric-label">Memory Usage</span>
+                                <span class="metric-value-large" id="memoryUsage">--</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="memoryProgress" style="width: 0%; background: linear-gradient(90deg, #ffa502, #ff6348);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Cost Savings -->
+                        <div class="metric-row" style="background: rgba(46, 213, 115, 0.2); border: 1px solid rgba(46, 213, 115, 0.3);">
+                            <div>
+                                <div class="metric-label">Cost Savings Today</div>
+                                <div style="font-size: 1.8em; font-weight: bold; color: #2ed573;">$<span id="costSavings">0.00</span></div>
+                            </div>
+                            <div style="font-size: 2em;">💰</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <button class="btn" onclick="refreshOllama()" style="width: 100%;">🔄 Refresh Metrics</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🎛️ Mission Control v1.0 • Hoofabot Multi-Agent Network • Built with OpenClaw</p>
+            <p style="margin-top: 5px; font-size: 0.85em;">Last updated: <span id="lastUpdate">--</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTimestamp();
+            startUptimeCounter();
+            initAgentSelector();
+            initOllamaMonitor();
+            
+            // Simulate real-time updates (in production, this would connect to actual API)
+            setInterval(simulateActivity, 30000); // Update every 30 seconds
+            setInterval(updateOllamaMetrics, 5000); // Update Ollama every 5 seconds
+        });
+
+        // Agent selector
+        let selectedAgent = null;
+        
+        function initAgentSelector() {
+            const chips = document.querySelectorAll('.agent-chip');
+            chips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    chips.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedAgent = this.dataset.agent;
+                });
+            });
+        }
+
+        // Send message
+        function sendMessage() {
+            // Stop recording if active
+            if (isRecording) {
+                stopVoiceInput();
+            }
+
+            const message = document.getElementById('messageInput').value;
+            if (!message.trim()) {
+                alert('Please enter a message');
+                return;
+            }
+            if (!selectedAgent) {
+                alert('Please select an agent first');
+                return;
+            }
+
+            // In production, this would call OpenClaw sessions_send
+            console.log(`Sending to ${selectedAgent}: ${message}`);
+            
+            // Show confirmation
+            const emoji = getAgentEmoji(selectedAgent);
+            addActivityItem(`You → ${emoji}: ${message.substring(0, 50)}...`);
+            document.getElementById('messageInput').value = '';
+            
+            alert(`Message sent to ${selectedAgent} agent! (In production, this would use OpenClaw's sessions_send tool)`);
+        }
+
+        function getAgentEmoji(agent) {
+            const emojis = {
+                'main': '🤖 Hoofabot',
+                'pd': '🎯 PD',
+                'tiktok': '🎬 TikTok',
+                'affiliate': '💰 Affiliate',
+                'aimodels': '💃 AI Models',
+                'email': '📧 Email Manager'
+            };
+            return emojis[agent] || '🤖';
+        }
+
+        function addActivityItem(text) {
+            const feed = document.querySelector('.activity-feed');
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            item.innerHTML = `
+                <strong>${text}</strong>
+                <span class="activity-time">Just now</span>
+            `;
+            feed.insertBefore(item, feed.firstChild);
+            
+            // Limit to 20 items
+            if (feed.children.length > 20) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleString();
+        }
+
+        // Uptime counter
+        const startTime = Date.now();
+        function startUptimeCounter() {
+            setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const days = Math.floor(elapsed / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((elapsed % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('uptime').textContent = `${days}d ${hours}h ${minutes}m`;
+            }, 1000);
+        }
+
+        // Simulate activity (in production, this would fetch from OpenClaw)
+        function simulateActivity() {
+            const activities = [
+                '🤖 Hoofabot: System health check completed',
+                '🎯 PD Agent: Monitoring campaign metrics',
+                '🎬 TikTok Agent: Analyzing trending content',
+                '💰 Affiliate Agent: Tracking conversion rates',
+                '💃 AI Models Agent: Reviewing engagement data',
+                '📧 Email Manager: Triaging inbox'
+            ];
+            const random = activities[Math.floor(Math.random() * activities.length)];
+            addActivityItem(random);
+        }
+
+        // Quick action buttons
+        function refreshDashboard() {
+            updateTimestamp();
+            addActivityItem('System: Dashboard refreshed');
+            alert('Dashboard refreshed! (In production, this would call openclaw agents list --bindings)');
+        }
+
+        function viewLogs() {
+            alert('Opening logs... (In production: openclaw logs --follow)');
+        }
+
+        function openConfig() {
+            alert('Opening configuration... (In production: openclaw config get agents)');
+        }
+
+        function openDocs() {
+            window.open('https://docs.openclaw.ai', '_blank');
+        }
+
+        // Email Functions
+        function refreshInbox() {
+            // In production, this would call Gmail API
+            // GET https://gmail.googleapis.com/gmail/v1/users/me/messages
+            updateTimestamp();
+            addActivityItem('📧 Email Manager: Inbox refreshed');
+            
+            // Simulate unread count update
+            const unreadCount = Math.floor(Math.random() * 15) + 3;
+            document.getElementById('unreadCount').textContent = unreadCount;
+            
+            alert('Inbox refreshed! (In production: would fetch latest emails via Gmail API)');
+        }
+
+        function composeEmail() {
+            const recipient = prompt('To:');
+            if (recipient) {
+                const subject = prompt('Subject:');
+                if (subject) {
+                    alert(`Composing email to ${recipient} with subject "${subject}"\n\nIn production, this would:\n1. Open email composer\n2. Use Email Manager agent to draft\n3. Show preview for approval\n4. Send via Gmail API`);
+                    addActivityItem(`📧 Email Manager: Composing email to ${recipient}`);
+                }
+            }
+        }
+
+        function draftReply(emailId) {
+            addActivityItem(`📧 Email Manager: Drafting reply to ${emailId}`);
+            alert(`Email Manager will draft a reply to this message.\n\nIn production:\n1. Analyze email context\n2. Generate appropriate response\n3. Show draft for approval\n4. Send when confirmed`);
+        }
+
+        function viewEmail(emailId) {
+            alert(`Viewing email: ${emailId}\n\nIn production: would open full email view with:\n- Complete message body\n- Attachments\n- Thread history\n- Quick actions`);
+        }
+
+        function archiveEmail(emailId) {
+            addActivityItem(`📧 Email Manager: Archived ${emailId}`);
+            alert(`Email archived!\n\nIn production: would call Gmail API to archive`);
+        }
+
+        function setupGmailAPI() {
+            const instructions = `
+🔗 Gmail API Setup Instructions:
+
+1. Go to: https://console.cloud.google.com/
+2. Create/Select a project
+3. Enable Gmail API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URI: http://localhost:18789/oauth/gmail
+6. Download credentials.json
+
+7. In OpenClaw, configure:
+   - Store credentials in ~/.config/gmail/credentials.json
+   - Run: openclaw config set skills.gmail.apiKey "YOUR_CLIENT_ID"
+   
+8. Authenticate:
+   - First run will open browser for OAuth
+   - Grant access to Gmail
+   - Token stored for future use
+
+Alternative: Use Gmail API REST endpoints directly
+GET https://gmail.googleapis.com/gmail/v1/users/me/messages
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+Once configured, this dashboard will display live Gmail data!
+            `;
+            alert(instructions);
+        }
+
+        // Initialize inbox (simulated)
+        function initializeInbox() {
+            // Set unread count
+            document.getElementById('unreadCount').textContent = '8';
+        }
+
+        // Call initialization
+        setTimeout(initializeInbox, 1000);
+
+        // Voice Input Functions
+        let recognition = null;
+        let isRecording = false;
+
+        function initializeVoiceRecognition() {
+            // Check if browser supports Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('Speech recognition not supported in this browser');
+                return false;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            let finalTranscript = '';
+            
+            recognition.onstart = () => {
+                console.log('Voice recognition started');
+                isRecording = true;
+                document.getElementById('voiceBtn').classList.add('recording');
+                document.getElementById('voiceBtnIcon').textContent = '🔴';
+                document.getElementById('voiceStatus').style.display = 'block';
+                addActivityItem('🎤 Voice input: Listening...');
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                        document.getElementById('messageInput').value = finalTranscript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Show interim results
+                if (interimTranscript) {
+                    document.getElementById('interimTranscript').textContent = interimTranscript;
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                
+                let errorMsg = 'Voice input error';
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMsg = 'No speech detected. Please try again.';
+                        break;
+                    case 'audio-capture':
+                        errorMsg = 'Microphone not found or not allowed.';
+                        break;
+                    case 'not-allowed':
+                        errorMsg = 'Microphone permission denied. Please allow access.';
+                        break;
+                    default:
+                        errorMsg = `Error: ${event.error}`;
+                }
+                
+                alert(errorMsg);
+                stopVoiceInput();
+            };
+
+            recognition.onend = () => {
+                if (isRecording) {
+                    // If still recording, restart (for continuous listening)
+                    recognition.start();
+                }
+            };
+
+            return true;
+        }
+
+        function toggleVoiceInput() {
+            if (!recognition) {
+                const initialized = initializeVoiceRecognition();
+                if (!initialized) {
+                    alert('Voice input is not supported in your browser.\n\nPlease use:\n- Chrome/Edge (recommended)\n- Safari 14.1+\n\nOr use the Telegram watch app for voice input!');
+                    return;
+                }
+            }
+
+            if (isRecording) {
+                stopVoiceInput();
+            } else {
+                startVoiceInput();
+            }
+        }
+
+        function startVoiceInput() {
+            if (!selectedAgent) {
+                alert('Please select an agent first');
+                return;
+            }
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Failed to start recognition:', e);
+            }
+        }
+
+        function stopVoiceInput() {
+            isRecording = false;
+            
+            if (recognition) {
+                recognition.stop();
+            }
+            
+            document.getElementById('voiceBtn').classList.remove('recording');
+            document.getElementById('voiceBtnIcon').textContent = '🎤';
+            document.getElementById('voiceStatus').style.display = 'none';
+            document.getElementById('interimTranscript').textContent = 'Speak now...';
+            
+            const message = document.getElementById('messageInput').value.trim();
+            if (message) {
+                addActivityItem(`🎤 Voice input: "${message.substring(0, 50)}..."`);
+            }
+        }
+
+        function clearMessage() {
+            document.getElementById('messageInput').value = '';
+            if (isRecording) {
+                stopVoiceInput();
+            }
+        }
+
+        // Check microphone permissions on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if getUserMedia is available
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                // Browser supports microphone access
+                console.log('Microphone API available');
+            } else {
+                console.warn('Microphone API not available');
+            }
+        });
+
+        // Ollama Monitoring Functions
+        let ollamaData = {
+            requestsToday: 0,
+            tokensToday: 0,
+            requestRate: 0,
+            memoryUsage: 0,
+            costSavings: 0,
+            activityHistory: [],
+            heartbeatInterval: 30 * 60 * 1000, // 30 minutes in milliseconds
+            lastHeartbeat: Date.now()
+        };
+
+        function initOllamaMonitor() {
+            // Initialize with some baseline data
+            updateOllamaDisplay();
+            updateHeartbeatCountdown();
+            setInterval(updateHeartbeatCountdown, 1000);
+            
+            // Simulate some activity
+            simulateOllamaActivity();
+        }
+
+        function simulateOllamaActivity() {
+            // Simulate heartbeat requests (every 30 min average)
+            const minutesSinceStart = (Date.now() - startTime) / 60000;
+            ollamaData.requestsToday = Math.floor(minutesSinceStart / 30);
+            
+            // Simulate tokens (average ~1000 tokens per heartbeat)
+            ollamaData.tokensToday = ollamaData.requestsToday * Math.floor(Math.random() * 500 + 800);
+            
+            // Simulate request rate (requests per minute)
+            ollamaData.requestRate = (Math.random() * 0.5).toFixed(1);
+            
+            // Simulate memory usage (percentage)
+            ollamaData.memoryUsage = Math.floor(Math.random() * 30 + 20);
+            
+            // Calculate cost savings (Ollama is free, Claude would cost ~$0.003 per 1K tokens)
+            ollamaData.costSavings = (ollamaData.tokensToday / 1000 * 0.003).toFixed(2);
+            
+            // Update activity chart
+            updateActivityChart();
+        }
+
+        function updateOllamaMetrics() {
+            // In production, this would call: curl http://localhost:11434/api/tags
+            // For now, simulate updates
+            simulateOllamaActivity();
+            updateOllamaDisplay();
+        }
+
+        function updateOllamaDisplay() {
+            // Update request rate
+            document.getElementById('requestRate').textContent = ollamaData.requestRate;
+            
+            // Update requests today
+            document.getElementById('requestsToday').textContent = ollamaData.requestsToday;
+            const maxRequests = 48; // ~48 heartbeats per day (every 30 min)
+            const requestPercent = Math.min((ollamaData.requestsToday / maxRequests) * 100, 100);
+            document.getElementById('requestProgress').style.width = requestPercent + '%';
+            
+            // Update tokens today
+            document.getElementById('tokensToday').textContent = ollamaData.tokensToday.toLocaleString();
+            const maxTokens = 100000;
+            const tokenPercent = Math.min((ollamaData.tokensToday / maxTokens) * 100, 100);
+            document.getElementById('tokenProgress').style.width = tokenPercent + '%';
+            
+            // Update memory usage
+            document.getElementById('memoryUsage').textContent = ollamaData.memoryUsage + '%';
+            document.getElementById('memoryProgress').style.width = ollamaData.memoryUsage + '%';
+            
+            // Update cost savings
+            document.getElementById('costSavings').textContent = ollamaData.costSavings;
+        }
+
+        function updateActivityChart() {
+            // Add new data point
+            const newHeight = Math.floor(Math.random() * 50 + 20);
+            ollamaData.activityHistory.push(newHeight);
+            
+            // Keep only last 10 data points
+            if (ollamaData.activityHistory.length > 10) {
+                ollamaData.activityHistory.shift();
+            }
+            
+            // Update chart bars
+            const chart = document.getElementById('activityChart');
+            const bars = chart.getElementsByClassName('chart-bar');
+            
+            for (let i = 0; i < bars.length; i++) {
+                if (ollamaData.activityHistory[i]) {
+                    bars[i].style.height = ollamaData.activityHistory[i] + '%';
+                }
+            }
+        }
+
+        function updateHeartbeatCountdown() {
+            const timeSinceLastHeartbeat = Date.now() - ollamaData.lastHeartbeat;
+            const timeUntilNextHeartbeat = ollamaData.heartbeatInterval - timeSinceLastHeartbeat;
+            
+            if (timeUntilNextHeartbeat <= 0) {
+                // Heartbeat should have occurred
+                document.getElementById('nextHeartbeat').textContent = 'Next: Now';
+                ollamaData.lastHeartbeat = Date.now(); // Reset
+            } else {
+                const minutes = Math.floor(timeUntilNextHeartbeat / 60000);
+                const seconds = Math.floor((timeUntilNextHeartbeat % 60000) / 1000);
+                document.getElementById('nextHeartbeat').textContent = `Next: ${minutes}m ${seconds}s`;
+            }
+        }
+
+        async function refreshOllama() {
+            // In production, this would call Ollama API
+            // curl http://localhost:11434/api/tags
+            updateTimestamp();
+            simulateOllamaActivity();
+            updateOllamaDisplay();
+            addActivityItem('🦙 Ollama: Metrics refreshed');
+            
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Refreshed!';
+            btn.style.background = 'rgba(46, 213, 115, 0.3)';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+            }, 2000);
+        }
+
+        // Audio Player Functions
+        let currentAudioPath = null;
+
+        function loadAudio(audioPath, title = 'Audio Response') {
+            currentAudioPath = audioPath;
+            const audioPlayer = document.getElementById('audioPlayer');
+            const audioSource = document.getElementById('audioSource');
+            
+            // Hide "no audio" message
+            document.getElementById('noAudio').style.display = 'none';
+            
+            // Show audio controls
+            document.getElementById('audioControls').style.display = 'block';
+            
+            // Set audio source
+            audioSource.src = audioPath;
+            audioPlayer.load();
+            
+            // Update title and timestamp
+            document.getElementById('audioTitle').textContent = title;
+            document.getElementById('audioTimestamp').textContent = 'Just now';
+            
+            // Auto-play the audio
+            audioPlayer.play();
+            
+            // Add to activity feed
+            addActivityItem('🔊 Audio response ready to play');
+        }
+
+        function playAudio() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.play();
+            addActivityItem('🔊 Playing audio response');
+        }
+
+        function pauseAudio() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.pause();
+        }
+
+        function downloadAudio() {
+            if (!currentAudioPath) {
+                alert('No audio file loaded');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.href = currentAudioPath;
+            link.download = 'hoofabot-response.opus';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            addActivityItem('💾 Audio file downloaded');
+        }
+
+        // Simulate receiving audio (for testing)
+        function simulateAudioResponse() {
+            // This would be called when actual audio is received
+            // For now, this is a placeholder
+            console.log('Audio response simulation - would load audio here');
+        }
+
+        // Check for new audio files (polling method)
+        async function checkForNewAudio() {
+            // In production, this would check for new audio files
+            // Could poll a directory or listen to WebSocket updates
+            // Example: /Users/hoofabot/.openclaw/workspace/audio-responses/
+            
+            // For now, this is a placeholder for future integration
+        }
+
+        // Poll for audio every 5 seconds (can be adjusted)
+        setInterval(checkForNewAudio, 5000);
+    </script>
+</body>
+</html>
