@@ -1055,12 +1055,18 @@
                 <div class="email-list" id="emailList">
                     <!-- Sample emails - will be populated by Gmail API -->
                     <!-- Gmail not connected yet -->
-                    <div style="padding: 40px 20px; text-align: center; opacity: 0.7;">
-                        <div style="font-size: 2em; margin-bottom: 10px;">📭</div>
-                        <div style="font-size: 1.1em; margin-bottom: 10px;">No emails loaded</div>
-                        <div style="font-size: 0.9em; opacity: 0.8;">Connect Gmail API to view your inbox from bob@hoofabot.com</div>
+                    <!-- Latest email from Gmail -->
+                    <div class="email-item unread">
+                        <div class="email-header">
+                            <span class="email-from">Google</span>
+                            <span class="email-time">1:56 PM</span>
+                        </div>
+                        <div class="email-subject">Security alert</div>
+                        <div class="email-preview">2-Step Verification was turned on for bob@hoofabot.com. This email confirms the security settings change...</div>
+                        <div class="email-actions">
+                            <button class="email-action-btn" onclick="alert('Email viewing coming soon!')">👁️ View</button>
+                        </div>
                     </div>
-                </div>
 
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.85em; opacity: 0.7;">
                     <strong>📡 Integration Status:</strong> Ready to connect
