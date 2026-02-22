@@ -112,6 +112,13 @@
 
         .agent-card {
             min-height: 200px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .agent-card:hover {
+            border-color: rgba(102,126,234,0.6);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
         }
 
         .agent-header {
@@ -732,6 +739,122 @@
             .agents-container {
                 max-height: 600px;
             }
+        }
+
+        /* Agent Detail Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 1px solid rgba(102,126,234,0.5);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .modal-agent-emoji {
+            font-size: 3.5em;
+            margin-right: 20px;
+        }
+
+        .modal-agent-info h2 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .modal-agent-info p {
+            opacity: 0.8;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2em;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-section {
+            margin: 20px 0;
+        }
+
+        .modal-section h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .session-item {
+            background: rgba(40, 40, 40, 0.7);
+            border: 1px solid rgba(255,140,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .session-item:hover {
+            border-color: rgba(255,140,0,0.5);
+            background: rgba(40, 40, 40, 0.9);
+        }
+
+        .session-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .session-messages {
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .message-preview {
+            background: rgba(60, 60, 60, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -1794,6 +1917,127 @@ Once configured, this dashboard will display live Gmail data!
 
         // Poll for audio every 5 seconds (can be adjusted)
         setInterval(checkForNewAudio, 5000);
+
+        // Agent Detail Modal
+        function initAgentCards() {
+            const agentCards = document.querySelectorAll('.agent-card');
+            agentCards.forEach((card, index) => {
+                const agentNames = ['main', 'pd', 'tiktok', 'affiliate', 'aimodels', 'email', '10k', 'photo'];
+                const agentId = agentNames[index] || 'unknown';
+                card.setAttribute('data-agent', agentId);
+                card.addEventListener('click', () => showAgentDetail(agentId, card));
+            });
+        }
+
+        function showAgentDetail(agentId, cardElement) {
+            const emoji = cardElement.querySelector('.agent-emoji').textContent;
+            const title = cardElement.querySelector('.agent-info h3').textContent.split('@')[0].trim();
+            const role = cardElement.querySelector('.agent-info p').textContent;
+            const description = cardElement.querySelectorAll('p')[1].textContent;
+
+            const modal = document.getElementById('agentModal');
+            document.getElementById('modalAgentEmoji').textContent = emoji;
+            document.getElementById('modalAgentTitle').textContent = title;
+            document.getElementById('modalAgentRole').textContent = role;
+            document.getElementById('modalAgentDescription').textContent = description;
+
+            // Load session history (demo data for now)
+            loadAgentHistory(agentId);
+
+            modal.classList.add('active');
+        }
+
+        function closeAgentModal() {
+            const modal = document.getElementById('agentModal');
+            modal.classList.remove('active');
+        }
+
+        function loadAgentHistory(agentId) {
+            const historyContainer = document.getElementById('agentHistory');
+            
+            // Demo data - in production this would call sessions_list and sessions_history
+            const demoSessions = {
+                'main': [
+                    { time: '2 hours ago', messages: 15, preview: 'Reviewed Mission Control dashboard layout issues and fixed 3-column grid...' },
+                    { time: '5 hours ago', messages: 8, preview: 'Set up Gmail integration with Himalaya CLI for bob@hoofabot.com...' },
+                    { time: 'Yesterday', messages: 23, preview: 'Created new Telegram bots for Email, 10k, and Photo agents...' }
+                ],
+                'affiliate': [
+                    { time: '1 day ago', messages: 12, preview: 'Documented computer restart procedure and USB backup system...' },
+                    { time: '3 days ago', messages: 7, preview: 'Set up openclaw-backup.sh and restore scripts on USB drive...' }
+                ],
+                'pd': [
+                    { time: 'Last week', messages: 5, preview: 'Initial workspace setup and identity configuration...' }
+                ],
+                'tiktok': [
+                    { time: 'Last week', messages: 3, preview: 'Agent initialization and standing by for tasks...' }
+                ],
+                'aimodels': [
+                    { time: 'Last week', messages: 2, preview: 'Ready to create influencer personas and manage Instagram...' }
+                ],
+                'email': [
+                    { time: 'Today', messages: 1, preview: 'Email Manager system initialized, ready to handle inbox...' }
+                ],
+                '10k': [
+                    { time: 'Recently', messages: 4, preview: 'Growth strategy agent standing by for 10K milestones...' }
+                ],
+                'photo': [
+                    { time: 'Recently', messages: 1, preview: 'Photo analysis and organization system ready...' }
+                ]
+            };
+
+            const sessions = demoSessions[agentId] || [];
+            
+            if (sessions.length === 0) {
+                historyContainer.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 30px;">No activity yet. This agent is standing by.</p>';
+                return;
+            }
+
+            historyContainer.innerHTML = sessions.map(session => `
+                <div class="session-item">
+                    <div class="session-meta">
+                        <span>💬 ${session.messages} messages</span>
+                        <span>${session.time}</span>
+                    </div>
+                    <div class="message-preview">${session.preview}</div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize agent cards on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initAgentCards();
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('agentModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAgentModal();
+            }
+        });
     </script>
+
+    <!-- Agent Detail Modal -->
+    <div id="agentModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeAgentModal()">×</span>
+            <div class="modal-header">
+                <div class="modal-agent-emoji" id="modalAgentEmoji">🤖</div>
+                <div class="modal-agent-info">
+                    <h2 id="modalAgentTitle">Agent Name</h2>
+                    <p id="modalAgentRole">Role</p>
+                </div>
+            </div>
+            <div class="modal-section">
+                <p id="modalAgentDescription">Description</p>
+            </div>
+            <div class="modal-section">
+                <h3>📊 Recent Activity</h3>
+                <div id="agentHistory">
+                    <!-- Session history will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html><!-- Build: Sun Feb 22 07:05:46 EST 2026 -->
