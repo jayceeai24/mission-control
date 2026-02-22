@@ -1955,56 +1955,34 @@ Once configured, this dashboard will display live Gmail data!
             modal.classList.remove('active');
         }
 
-        function loadAgentHistory(agentId) {
+        async function loadAgentHistory(agentId) {
             const historyContainer = document.getElementById('agentHistory');
+            historyContainer.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 30px;">Loading activity...</p>';
             
-            // Demo data - in production this would call sessions_list and sessions_history
-            const demoSessions = {
-                'main': [
-                    { time: '2 hours ago', messages: 15, preview: 'Reviewed Mission Control dashboard layout issues and fixed 3-column grid...' },
-                    { time: '5 hours ago', messages: 8, preview: 'Set up Gmail integration with Himalaya CLI for bob@hoofabot.com...' },
-                    { time: 'Yesterday', messages: 23, preview: 'Created new Telegram bots for Email, 10k, and Photo agents...' }
-                ],
-                'affiliate': [
-                    { time: '1 day ago', messages: 12, preview: 'Documented computer restart procedure and USB backup system...' },
-                    { time: '3 days ago', messages: 7, preview: 'Set up openclaw-backup.sh and restore scripts on USB drive...' }
-                ],
-                'pd': [
-                    { time: 'Last week', messages: 5, preview: 'Initial workspace setup and identity configuration...' }
-                ],
-                'tiktok': [
-                    { time: 'Last week', messages: 3, preview: 'Agent initialization and standing by for tasks...' }
-                ],
-                'aimodels': [
-                    { time: 'Last week', messages: 2, preview: 'Ready to create influencer personas and manage Instagram...' }
-                ],
-                'email': [
-                    { time: 'Today', messages: 1, preview: 'Email Manager system initialized, ready to handle inbox...' }
-                ],
-                '10k': [
-                    { time: 'Recently', messages: 4, preview: 'Growth strategy agent standing by for 10K milestones...' }
-                ],
-                'photo': [
-                    { time: 'Recently', messages: 1, preview: 'Photo analysis and organization system ready...' }
-                ]
-            };
+            try {
+                // Fetch real agent activity data
+                const response = await fetch('agent-activity.json?' + Date.now()); // Cache bust
+                const agentData = await response.json();
+                const sessions = agentData[agentId] || [];
+                
+                if (sessions.length === 0) {
+                    historyContainer.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 30px;">No activity yet. This agent is standing by.</p>';
+                    return;
+                }
 
-            const sessions = demoSessions[agentId] || [];
-            
-            if (sessions.length === 0) {
-                historyContainer.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 30px;">No activity yet. This agent is standing by.</p>';
-                return;
-            }
-
-            historyContainer.innerHTML = sessions.map(session => `
-                <div class="session-item">
-                    <div class="session-meta">
-                        <span>💬 ${session.messages} messages</span>
-                        <span>${session.time}</span>
+                historyContainer.innerHTML = sessions.map(session => `
+                    <div class="session-item">
+                        <div class="session-meta">
+                            <span>💬 ${session.messages} messages</span>
+                            <span>${session.time}</span>
+                        </div>
+                        <div class="message-preview">${session.preview}</div>
                     </div>
-                    <div class="message-preview">${session.preview}</div>
-                </div>
-            `).join('');
+                `).join('');
+            } catch (error) {
+                console.error('Error loading agent history:', error);
+                historyContainer.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 30px; color: #ff6348;">Error loading activity data. Please try again.</p>';
+            }
         }
 
         // Initialize agent cards on load

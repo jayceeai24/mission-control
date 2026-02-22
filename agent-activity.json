@@ -1,0 +1,37 @@
+{
+  "main": [
+    {
+      "time": "Just now",
+      "messages": 15,
+      "preview": "Setting up Mission Control dashboard with real agent activity data..."
+    },
+    {
+      "time": "2 hours ago",
+      "messages": 12,
+      "preview": "Reviewed Mission Control dashboard layout issues and fixed 3-column grid..."
+    },
+    {
+      "time": "5 hours ago",
+      "messages": 8,
+      "preview": "Set up Gmail integration with Himalaya CLI for bob@hoofabot.com..."
+    }
+  ],
+  "affiliate": [
+    {
+      "time": "1 day ago",
+      "messages": 12,
+      "preview": "Documented computer restart procedure and USB backup system..."
+    },
+    {
+      "time": "3 days ago",
+      "messages": 7,
+      "preview": "Set up openclaw-backup.sh and restore scripts on USB drive..."
+    }
+  ],
+  "pd": [],
+  "tiktok": [],
+  "aimodels": [],
+  "email": [],
+  "10k": [],
+  "photo": []
+}
